@@ -36,7 +36,7 @@ ui <- page_sidebar(
                 label = "Select Region",
                 choices = c("Coastal","Railbelt","Rural Remote"),
                 selected = "Coastal"),
-    br(), br(),br(), br(),br(), br(),br(), br(),
+    br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),
     p("Download Data Below"),
     radioButtons(inputId = "filetype",
                  label = "Select filetype:",
