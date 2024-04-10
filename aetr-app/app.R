@@ -6,26 +6,14 @@ library(ggplot2)
 library(ggiraph)
 library(kableExtra)
 
-#data
+#access data
 source <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/prices/weighted_prices.csv"
 weighted_prices <- read_csv(url(source))
 
-make_table <- function(use_year, use_acep_energy_region, use_sector) {
-  weighted_prices %>%
-    dplyr::filter(year == use_year & acep_energy_region == use_acep_energy_region & sector == use_sector) %>%
-    select(year, weighted_price) %>%
-    kableExtra::kbl(digits = 3, row.names = FALSE) %>%
-    # change the font family and increase font size
-    kableExtra::kable_styling(bootstrap_options = "striped", font_size = 12, html_font = "Courier New") %>%
-    # increase the width of the columns, make the text blue and bold, apply white background
-    kableExtra::column_spec(1:2, width = "1cm", bold = T, background = "white")
-}
-
+#add table to each row for tooltip to work
 df <- weighted_prices %>%
   dplyr::rowwise() %>%
   dplyr::mutate(table = make_table(year, acep_energy_region, sector)) #%>%
-
-
 
 # Define UI for application that draws a histogram
 ui <- page_sidebar(
