@@ -3,7 +3,6 @@ library(bslib)
 library(readr)
 library(dplyr)
 library(ggplot2)
-#library(DT)
 library(ggiraph)
 library(kableExtra)
 
@@ -104,49 +103,3 @@ server <- function(input, output) {
 }
 # Run the application
 shinyApp(ui = ui, server = server)
-
-# library(shiny)
-# library(dplyr)
-# library(ggplot2)
-# library(ggiraph)
-#
-#
-# ui <- shinyUI(fluidPage(
-#
-#
-#   titlePanel("Shiny & ggiraph"),
-#
-#
-#   sidebarLayout(
-#     sidebarPanel(
-#       selectInput("species",
-#                   "Select species:",
-#                   selected = "setosa",
-#                   choices = unique(levels(iris$Species))
-#       )
-#     ),
-#
-#
-#     mainPanel(
-#       girafeOutput("plotIris")
-#     )
-#   )
-# ))
-#
-#
-# server <- shinyServer(function(input, output) {
-#   filterIris <- reactive({
-#     filter(iris, Species == input$species)
-#   })
-#
-  # output$plotIris <- renderGirafe({
-  #   gg <- ggplot(filterIris(), aes(x = Sepal.Length, y = Petal.Length))
-  #   gg <- gg + geom_point_interactive(
-  #     aes(tooltip = filterIris()$Sepal.Length), size = 2)
-  #   girafe(code = print(gg))
-  # })
-#
-# })
-#
-#
-# shinyApp(ui = ui, server = server)
