@@ -62,7 +62,7 @@ ui <- page_sidebar(
 
     # Panel with table ----
     nav_panel("Consumption and Sales", plotOutput(outputId = "cs_plot")),
-    nav_panel("Price of Electricity", girafeOutput(outputId = "pe_plot"))
+    nav_panel("Price of Electricity", plotlyOutput(outputId = "pe_plot"))
   ),
 #,
   # card(dataTableOutput(outputId = "hover_table")
@@ -134,39 +134,41 @@ server <- function(input, output) {
       filter(acep_energy_region == input$acep_energy_region)
   })
 
-  output$pe_plot <- renderGirafe({
-    object_pe <- ggplot(regional_subset(), aes(x = year, y = weighted_price, colour = sector)) +
-      geom_point_interactive(aes(tooltip = table)) +
+  output$pe_plot <- renderPlotly({
+    object_pe <- ggplotly(
+      ggplot(regional_subset(), aes(x = year, y = weighted_price, colour = sector)) +
+      #geom_point_interactive(aes(tooltip = table)) +
+      geom_point() +
       geom_line(alpha = 0.3) +
       scale_x_continuous(breaks = seq(min(weighted_prices_tooltip$year), max(weighted_prices_tooltip$year), by = 1)) +
       scale_y_continuous(limits = c(10,70), breaks = seq(10,70, by = 10)) +
       labs(title = paste(input$acep_energy_region, "Trends in Price of Electricity"),
            subtitle = "hover over points for details") +
       ylab("Cents per\nKilowatt-hour") +
-      theme(axis.title.y = element_text(angle=0, size = 7, colour = "white"),
+      theme(axis.title.y = element_text(angle=0, size = 8, colour = "white", vjust = 3),
             axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
             axis.text.x = element_text(colour = "white"),
             axis.text.y = element_text(colour = "white"),
             plot.title = element_text(face = "bold", colour = "white"),
-            plot.subtitle = element_text(size = 7, colour = "white"),
+            plot.subtitle = element_text(size = 8, colour = "white"),
             panel.grid.minor = element_blank(),
             panel.grid.major = element_blank(),
-            panel.background = element_blank(),
+            panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "#30115e", colour = "#30115e"),
             legend.background = element_blank(),
             legend.text = element_text(colour = "white"),
             legend.title = element_text(colour = "white")
             )
-
-    girafe(ggobj = object_pe,
-           options = list(
-             opts_tooltip(opacity = 0.7,
-                          use_stroke = TRUE,
-                          offx = 10, offy = -100,
-                          delay_mouseover = 50,
-                          delay_mouseout = 50)
-           ),
-           width_svg = 8, height_svg = 4)
+)
+    # girafe(ggobj = object_pe,
+    #        options = list(
+    #          opts_tooltip(opacity = 0.7,
+    #                       use_stroke = TRUE,
+    #                       offx = 10, offy = -100,
+    #                       delay_mouseover = 50,
+    #                       delay_mouseout = 50)
+    #        ),
+    #        width_svg = 8, height_svg = 4)
 })
 
 
