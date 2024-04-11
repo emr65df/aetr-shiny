@@ -16,15 +16,12 @@ capacity_filtered <- capacity %>%
   group_by(year, prime_mover) %>%
   summarize(capacity = sum(capacity))  %>%
   arrange(desc(capacity), .by_group = TRUE) %>%
-  mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover))) #%>%
-  # ggplot(aes(x = year, y = capacity, fill = prime_mover)) +
-  # geom_area(position = 'stack') +
-  # theme(legend.position = "top")
+  mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover)))
 
-capacity_filtered_tooltip <-
-  capacity_filtered %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(table = make_capacity_table(.,year, prime_mover))
+# capacity_filtered_tooltip <-
+#   capacity_filtered %>%
+#   dplyr::rowwise() %>%
+#   dplyr::mutate(table = make_capacity_table(.,year, prime_mover))
 
 #prices data
 source_weighted_prices <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/prices/weighted_prices.csv"
@@ -58,7 +55,7 @@ ui <- page_sidebar(
   #   downloadButton("download_data", "All Regions")
   navset_card_underline(
     # Panel with plot ----
-    nav_panel("Installed Capacity", girafeOutput(outputId = "ic_plot")),
+    nav_panel("Installed Capacity", plotlyOutput(outputId = "ic_plot")),
 
     # Panel with summary ----
     nav_panel("Net/Gross Generation", plotOutput(outputId = "ng_plot")),
@@ -76,11 +73,11 @@ ui <- page_sidebar(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-  output$ic_plot <- renderGirafe({
-    object_ic <- ggplot(capacity_filtered_tooltip, aes(x = year, y = capacity, fill = prime_mover)) +
+  output$ic_plot <- renderPlotly({
+    object_ic <- ggplotly(
+      ggplot(capacity_filtered, aes(x = year, y = capacity, fill = prime_mover)) +
       geom_area(position = "stack") +
-      geom_area_interactive(aes(tooltip = table)) +
-      scale_x_continuous(breaks = seq(min(capacity_filtered_tooltip$year), max(capacity_filtered_tooltip$year), by = 1)) +
+      scale_x_continuous(breaks = seq(min(capacity_filtered$year), max(capacity_filtered$year), by = 1)) +
       scale_y_continuous(limits = c(0,3500), breaks = seq(0,3500, by = 500)) +
       labs(title = "All Regions Trend",
            subtitle = "hover over points for details") +
@@ -93,23 +90,44 @@ server <- function(input, output) {
             plot.subtitle = element_text(size = 7, colour = "white"),
             panel.grid.minor = element_blank(),
             panel.grid.major = element_blank(),
-            panel.background = element_blank(),
+            panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "#30115e", colour = "#30115e"),
             legend.background = element_blank(),
             legend.text = element_text(colour = "white"),
-            legend.title = element_text(colour = "white")
+            legend.title = element_text(colour = "white"))
       )
-
-    girafe(ggobj = object_ic,
-           options = list(
-             opts_tooltip(opacity = 0.7,
-                          use_stroke = TRUE,
-                          offx = 10, offy = -100,
-                          delay_mouseover = 50,
-                          delay_mouseout = 50)
-           ),
-           width_svg = 8, height_svg = 4)
   })
+  # output$ic_plot <- renderGirafe({
+  #   object_ic <- ggplot(capacity_filtered_tooltip, aes(x = year, y = capacity, fill = prime_mover)) +
+  #     geom_line_interactive(aes(tooltip=table)) +
+  #     geom_area(position = "fill") +
+  #     #scale_x_continuous(breaks = seq(min(capacity_filtered_tooltip$year), max(capacity_filtered_tooltip$year), by = 1)) +
+  #     #scale_y_continuous(limits = c(0,3500), breaks = seq(0,3500, by = 500)) +
+  #     labs(title = "All Regions Trend",
+  #          subtitle = "hover over points for details") +
+  #     ylab("Capacity (mW)") +
+  #     theme(axis.title.y = element_text(angle=0, size = 7, colour = "white"),
+  #           axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
+  #           axis.text.x = element_text(colour = "white"),
+  #           axis.text.y = element_text(colour = "white"),
+  #           plot.title = element_text(face = "bold", colour = "white"),
+  #           plot.subtitle = element_text(size = 7, colour = "white"),
+  #           panel.grid.minor = element_blank(),
+  #           panel.grid.major = element_blank(),
+  #           panel.background = element_blank(),
+  #           plot.background = element_rect(fill = "#30115e", colour = "#30115e"),
+  #           legend.background = element_blank(),
+  #           legend.text = element_text(colour = "white"),
+  #           legend.title = element_text(colour = "white")
+  #     )
+  #
+  #   girafe(ggobj = object_ic,
+  #          options = list(
+  #            opts_tooltip(delay_mouseover = 50,
+  #                         delay_mouseout = 50)
+  #          ),
+  #          width_svg = 8, height_svg = 4)
+  # })
 
   regional_subset <- reactive({
     weighted_prices_tooltip %>%
