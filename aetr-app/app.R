@@ -5,32 +5,40 @@ library(dplyr)
 library(ggplot2)
 library(ggiraph)
 library(kableExtra)
+source("helpers.R")
 
 #access data
 source <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/prices/weighted_prices.csv"
 weighted_prices <- read_csv(url(source))
 
+#filter data < 2020
+weighted_prices_filtered <- weighted_prices %>%
+  filter(year <= 2019)
+
 #add table to each row for tooltip to work
-df <- weighted_prices %>%
+df <- weighted_prices_filtered %>%
   dplyr::rowwise() %>%
   dplyr::mutate(table = make_table(year, acep_energy_region, sector)) #%>%
 
 # Define UI for application that draws a histogram
 ui <- page_sidebar(
+  theme = bs_theme(preset = "vapor"),
   title = "Prices of Electricity",
   sidebar = sidebar(
     selectInput(inputId = "acep_energy_region",
                 label = "Select Region",
                 choices = c("Coastal","Railbelt","Rural Remote"),
                 selected = "Coastal"),
-    br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),br(), br(),
-    p("Download Data Below"),
-    radioButtons(inputId = "filetype",
-                 label = "Select filetype:",
-                 choices = c("csv", "tsv"),
-                 selected = "csv"),
-    downloadButton("download_data", "All Regions")
-  ),
+    # p("Download Data Below"),
+    # radioButtons(inputId = "filetype",
+    #              label = "Select filetype:",
+    #              choices = c("csv", "tsv"),
+    #              selected = "csv"),
+    div(style = "position: absolute; bottom: 10px; right: 8%;",
+        tags$img(height = 65, width = 215, src = "acep-logo.png")),
+    #tags$a("2024 Alaska Electricity", tags$br(), "Trends Report", href = "https://acep-uaf.github.io/aetr-web-book-2024/")
+    ),
+  #   downloadButton("download_data", "All Regions")
   card(
     girafeOutput(outputId = "plot")
   )#,
@@ -56,11 +64,16 @@ server <- function(input, output) {
       labs(title = paste(input$acep_energy_region, "Trends in Price of Electricity"),
            subtitle = "hover over points for details") +
       ylab("Cents per\nKilowatt-hour") +
-      theme_bw() +
+      #theme_bw() +
       theme(axis.title.y = element_text(angle=0, size = 7, colour = "grey45"),
             axis.title.x = element_text(size = 7, colour = "grey45", hjust = 1),
             plot.title = element_text(face = "bold"),
-            plot.subtitle = element_text(size = 7, colour = "grey45"))
+            plot.subtitle = element_text(size = 7, colour = "grey45"),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.background = element_blank(),  # Make panel background transparent
+            plot.background = element_rect(fill = "#432874")
+            )
 
     girafe(ggobj = object,
            options = list(
