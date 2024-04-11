@@ -18,7 +18,7 @@ weighted_prices_filtered <- weighted_prices %>%
 #add table to each row for tooltip to work
 df <- weighted_prices_filtered %>%
   dplyr::rowwise() %>%
-  dplyr::mutate(table = make_table(year, acep_energy_region, sector)) #%>%
+  dplyr::mutate(table = make_table(.,year, acep_energy_region, sector)) #%>%
 
 # Define UI for application that draws a histogram
 ui <- page_sidebar(
@@ -67,12 +67,17 @@ server <- function(input, output) {
       #theme_bw() +
       theme(axis.title.y = element_text(angle=0, size = 7, colour = "grey45"),
             axis.title.x = element_text(size = 7, colour = "grey45", hjust = 1),
-            plot.title = element_text(face = "bold"),
-            plot.subtitle = element_text(size = 7, colour = "grey45"),
+            axis.text.x = element_text(colour = "white"),
+            axis.text.y = element_text(colour = "white"),
+            plot.title = element_text(face = "bold", colour = "white"),
+            plot.subtitle = element_text(size = 7, colour = "white"),
             panel.grid.minor = element_blank(),
             panel.grid.major = element_blank(),
             panel.background = element_blank(),  # Make panel background transparent
-            plot.background = element_rect(fill = "#432874")
+            plot.background = element_rect(fill = "#30115e"),
+            legend.background = element_blank(),
+            legend.text = element_text(colour = "white"),
+            legend.title = element_text(colour = "white")
             )
 
     girafe(ggobj = object,
