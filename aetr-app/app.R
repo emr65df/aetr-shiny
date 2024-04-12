@@ -18,60 +18,26 @@ capacity_filtered <- capacity %>%
   arrange(desc(capacity), .by_group = TRUE) %>%
   mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover)))
 
-# capacity_filtered_tooltip <-
-#   capacity_filtered %>%
-#   dplyr::rowwise() %>%
-#   dplyr::mutate(table = make_capacity_table(.,year, prime_mover))
-
 #prices data
 source_weighted_prices <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/prices/weighted_prices.csv"
 weighted_prices <- read_csv(url(source_weighted_prices))
 #filter data < 2020
 weighted_prices_filtered <- weighted_prices %>%
   filter(year <= 2019)
-#add table to each row for tooltip to work
-weighted_prices_tooltip <- weighted_prices_filtered %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(table = make_price_table(.,year, acep_energy_region, sector)) #%>%
 
 # Define UI for application that draws a histogram
 ui <- page_navbar(
   theme = bs_theme(preset = "vapor"),
   title = "2024 Alaska Electricity Trends Report",
   id = "nav",
-  # sidebar = sidebar(
-  #   selectInput(inputId = "acep_energy_region",
-  #               label = "Select Region",
-  #               choices = c("Coastal","Railbelt","Rural Remote"),
-  #               selected = "Coastal"),
-    # p("Download Data Below"),
-    # radioButtons(inputId = "filetype",
-    #              label = "Select filetype:",
-    #              choices = c("csv", "tsv"),
-    #              selected = "csv"),
     sidebar = sidebar(
+      selectInput(inputId = "acep_energy_region",
+                  label = "Select Region",
+                  choices = c("Statewide", "Coastal","Railbelt","Rural Remote"),
+                  selected = "Statewide"),
       div(style = "position: absolute; bottom: 10px; right: 8%;",
-        tags$img(height = 65, width = 215, src = "acep-logo.png")),
-      conditionalPanel("input.nav == 'Installed Capacity'",
-                       selectInput(inputId = "acep_energy_region",
-                                   label = "Select Region",
-                                   choices = c("All", "Coastal","Railbelt","Rural Remote"),
-                                   selected = "All")),
-      conditionalPanel("input.nav == 'Net/Gross Generation'",
-                       selectInput(inputId = "acep_energy_region",
-                                   label = "Select Region",
-                                   choices = c("Coastal","Railbelt","Rural Remote"),
-                                   selected = "Coastal")),
-      conditionalPanel("input.nav == 'Consumption and Sales'",
-                       selectInput(inputId = "acep_energy_region",
-                                   label = "Select Region",
-                                   choices = c("Coastal","Railbelt","Rural Remote"),
-                                   selected = "Coastal")),
-      conditionalPanel("input.nav == 'Price of Electricity'",
-                       selectInput(inputId = "acep_energy_region",
-                                   label = "Select Region",
-                                   choices = c("Coastal","Railbelt","Rural Remote"),
-                                   selected = "Coastal"))),
+        tags$img(height = 65, width = 215, src = "acep-logo.png"))
+    ),
     #tags$a("2024 Alaska Electricity", tags$br(), "Trends Report", href = "https://acep-uaf.github.io/aetr-web-book-2024/")
   #   downloadButton("download_data", "All Regions")
     # Panel with plot ----
@@ -150,7 +116,11 @@ server <- function(input, output) {
   # })
 
   regional_subset <- reactive({
-    weighted_prices_tooltip %>%
+    if (c("Statewide") %in% input$acep_energy_region) weighted_prices_filtered %>%
+      group_by(year, sector) %>%
+      summarize(weighted_price = mean(weighted_price))
+    else
+    weighted_prices_filtered %>%
       filter(acep_energy_region == input$acep_energy_region)
   })
 
@@ -160,7 +130,7 @@ server <- function(input, output) {
       #geom_point_interactive(aes(tooltip = table)) +
       geom_point() +
       geom_line(alpha = 0.3) +
-      scale_x_continuous(breaks = seq(min(weighted_prices_tooltip$year), max(weighted_prices_tooltip$year), by = 1)) +
+      scale_x_continuous(breaks = seq(min(weighted_prices_filtered$year), max(weighted_prices_filtered$year), by = 1)) +
       scale_y_continuous(limits = c(10,70), breaks = seq(10,70, by = 10)) +
       labs(title = paste(input$acep_energy_region, "Trends in Price of Electricity"),
            subtitle = "hover over points for details") +
