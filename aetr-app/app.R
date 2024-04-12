@@ -3,7 +3,7 @@ library(bslib)
 library(readr)
 library(dplyr)
 library(ggplot2)
-library(ggiraph)
+library(plotly)
 library(kableExtra)
 source("helpers.R")
 
@@ -35,25 +35,45 @@ weighted_prices_tooltip <- weighted_prices_filtered %>%
   dplyr::mutate(table = make_price_table(.,year, acep_energy_region, sector)) #%>%
 
 # Define UI for application that draws a histogram
-ui <- page_sidebar(
+ui <- page_navbar(
   theme = bs_theme(preset = "vapor"),
-  title = "Prices of Electricity",
-  sidebar = sidebar(
-    selectInput(inputId = "acep_energy_region",
-                label = "Select Region",
-                choices = c("Coastal","Railbelt","Rural Remote"),
-                selected = "Coastal",),
+  title = "2024 Alaska Electricity Trends Report",
+  id = "nav",
+  # sidebar = sidebar(
+  #   selectInput(inputId = "acep_energy_region",
+  #               label = "Select Region",
+  #               choices = c("Coastal","Railbelt","Rural Remote"),
+  #               selected = "Coastal"),
     # p("Download Data Below"),
     # radioButtons(inputId = "filetype",
     #              label = "Select filetype:",
     #              choices = c("csv", "tsv"),
     #              selected = "csv"),
-    div(style = "position: absolute; bottom: 10px; right: 8%;",
+    sidebar = sidebar(
+      div(style = "position: absolute; bottom: 10px; right: 8%;",
         tags$img(height = 65, width = 215, src = "acep-logo.png")),
+      conditionalPanel("input.nav == 'Installed Capacity'",
+                       selectInput(inputId = "acep_energy_region",
+                                   label = "Select Region",
+                                   choices = c("All", "Coastal","Railbelt","Rural Remote"),
+                                   selected = "All")),
+      conditionalPanel("input.nav == 'Net/Gross Generation'",
+                       selectInput(inputId = "acep_energy_region",
+                                   label = "Select Region",
+                                   choices = c("Coastal","Railbelt","Rural Remote"),
+                                   selected = "Coastal")),
+      conditionalPanel("input.nav == 'Consumption and Sales'",
+                       selectInput(inputId = "acep_energy_region",
+                                   label = "Select Region",
+                                   choices = c("Coastal","Railbelt","Rural Remote"),
+                                   selected = "Coastal")),
+      conditionalPanel("input.nav == 'Price of Electricity'",
+                       selectInput(inputId = "acep_energy_region",
+                                   label = "Select Region",
+                                   choices = c("Coastal","Railbelt","Rural Remote"),
+                                   selected = "Coastal"))),
     #tags$a("2024 Alaska Electricity", tags$br(), "Trends Report", href = "https://acep-uaf.github.io/aetr-web-book-2024/")
-    ),
   #   downloadButton("download_data", "All Regions")
-  navset_card_underline(
     # Panel with plot ----
     nav_panel("Installed Capacity", plotlyOutput(outputId = "ic_plot")),
 
@@ -63,11 +83,11 @@ ui <- page_sidebar(
     # Panel with table ----
     nav_panel("Consumption and Sales", plotOutput(outputId = "cs_plot")),
     nav_panel("Price of Electricity", plotlyOutput(outputId = "pe_plot"))
-  ),
+)
 #,
   # card(dataTableOutput(outputId = "hover_table")
   # )
-)
+
 
 
 # Define server logic required to draw a histogram
@@ -145,7 +165,7 @@ server <- function(input, output) {
       labs(title = paste(input$acep_energy_region, "Trends in Price of Electricity"),
            subtitle = "hover over points for details") +
       ylab("Cents per\nKilowatt-hour") +
-      theme(axis.title.y = element_text(angle=0, size = 8, colour = "white", vjust = 3),
+      theme(axis.title.y = element_text(angle=0, size = 8, colour = "white"),
             axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
             axis.text.x = element_text(colour = "white"),
             axis.text.y = element_text(colour = "white"),
@@ -192,3 +212,4 @@ server <- function(input, output) {
 }
 # Run the application
 shinyApp(ui = ui, server = server)
+
