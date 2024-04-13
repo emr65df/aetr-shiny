@@ -12,11 +12,7 @@ source_capacity <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-202
 capacity <- read_csv(url(source_capacity))
 #filter data prime_mover != NA
 capacity_filtered <- capacity %>%
-  filter(!is.na(prime_mover)) %>%
-  group_by(year, prime_mover) %>%
-  summarize(capacity = sum(capacity))  %>%
-  arrange(desc(capacity), .by_group = TRUE) %>%
-  mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover)))
+  filter(!is.na(prime_mover))
 
 #prices data
 source_weighted_prices <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/prices/weighted_prices.csv"
@@ -59,13 +55,29 @@ ui <- page_navbar(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
+  ic_subset <- reactive({
+    if (c("Statewide") %in% input$acep_energy_region)
+      capacity_filtered %>%
+      group_by(year, prime_mover) %>%
+      summarize(capacity = sum(capacity))  %>%
+      arrange(desc(capacity), .by_group = TRUE) %>%
+      mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover)))
+    else
+      capacity_filtered %>%
+      filter(acep_region == input$acep_energy_region) %>%
+      group_by(year, prime_mover) %>%
+      summarize(capacity = sum(capacity))  %>%
+      arrange(desc(capacity), .by_group = TRUE) %>%
+      mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover)))
+  })
+
   output$ic_plot <- renderPlotly({
     object_ic <- ggplotly(
-      ggplot(capacity_filtered, aes(x = year, y = capacity, fill = prime_mover)) +
-      geom_area(position = "stack") +
-      scale_x_continuous(breaks = seq(min(capacity_filtered$year), max(capacity_filtered$year), by = 1)) +
+      ggplot(ic_subset(), aes(x = year, y = capacity, fill = prime_mover)) +
+      geom_area(stat = "identity", position = "stack") +
+      scale_x_continuous(breaks = seq(min(ic_subset()$year), max(ic_subset()$year), by = 1)) +
       scale_y_continuous(limits = c(0,3500), breaks = seq(0,3500, by = 500)) +
-      labs(title = "All Regions Trend",
+      labs(title = paste(input$acep_energy_region, "Trends in Installed Capacity"),
            subtitle = "hover over points for details") +
       ylab("Capacity (mW)") +
       theme(axis.title.y = element_text(angle=0, size = 7, colour = "white"),
@@ -130,7 +142,7 @@ server <- function(input, output) {
       #geom_point_interactive(aes(tooltip = table)) +
       geom_point() +
       geom_line(alpha = 0.3) +
-      scale_x_continuous(breaks = seq(min(weighted_prices_filtered$year), max(weighted_prices_filtered$year), by = 1)) +
+      scale_x_continuous(breaks = seq(min(regional_subset()$year), max(regional_subset()$year), by = 1)) +
       scale_y_continuous(limits = c(10,70), breaks = seq(10,70, by = 10)) +
       labs(title = paste(input$acep_energy_region, "Trends in Price of Electricity"),
            subtitle = "hover over points for details") +
