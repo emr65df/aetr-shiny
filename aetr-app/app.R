@@ -7,6 +7,10 @@ library(plotly)
 library(kableExtra)
 source("helpers.R")
 
+#generation
+source_generation <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/generation/net_generation_long.csv"
+generation <- read_csv(url(source_generation))
+
 #installed capacity data
 source_capacity <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/capacity/capacity_long.csv"
 capacity <- read_csv(url(source_capacity))
@@ -127,7 +131,7 @@ server <- function(input, output) {
   #          width_svg = 8, height_svg = 4)
   # })
 
-  regional_subset <- reactive({
+  pe_subset <- reactive({
     if (c("Statewide") %in% input$acep_energy_region) weighted_prices_filtered %>%
       group_by(year, sector) %>%
       summarize(weighted_price = mean(weighted_price))
@@ -138,11 +142,11 @@ server <- function(input, output) {
 
   output$pe_plot <- renderPlotly({
     object_pe <- ggplotly(
-      ggplot(regional_subset(), aes(x = year, y = weighted_price, colour = sector)) +
+      ggplot(pe_subset(), aes(x = year, y = weighted_price, colour = sector)) +
       #geom_point_interactive(aes(tooltip = table)) +
       geom_point() +
       geom_line(alpha = 0.3) +
-      scale_x_continuous(breaks = seq(min(regional_subset()$year), max(regional_subset()$year), by = 1)) +
+      scale_x_continuous(breaks = seq(min(pe_subset()$year), max(pe_subset()$year), by = 1)) +
       scale_y_continuous(limits = c(10,70), breaks = seq(10,70, by = 10)) +
       labs(title = paste(input$acep_energy_region, "Trends in Price of Electricity"),
            subtitle = "hover over points for details") +
@@ -176,7 +180,7 @@ server <- function(input, output) {
 
 
   # output$hover_table <- renderDataTable({
-  #   nearPoints(regional_subset(), input$plot_hover)
+  #   nearPoints(pe_subset(), input$plot_hover)
   # }, rownames = FALSE)
   output$download_data <- downloadHandler(
     filename = function() {
