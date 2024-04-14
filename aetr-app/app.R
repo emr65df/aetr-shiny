@@ -44,35 +44,44 @@ ui <- page_navbar(
     nav_panel("Installed Capacity", plotlyOutput(outputId = "ic_plot")),
 
     # Panel with summary ----
-    nav_panel("Net/Gross Generation", plotOutput(outputId = "ng_plot")),
+    nav_panel("Net/Gross Generation", plotlyOutput(outputId = "ng_plot")),
 
     # Panel with table ----
     nav_panel("Consumption and Sales", plotOutput(outputId = "cs_plot")),
     nav_panel("Price of Electricity", plotlyOutput(outputId = "pe_plot"))
 )
-#,
-  # card(dataTableOutput(outputId = "hover_table")
-  # )
-
-
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+
+plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "white"),
+                    axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
+                    axis.text.x = element_text(colour = "white"),
+                    axis.text.y = element_text(colour = "white"),
+                    plot.title = element_text(face = "bold", colour = "white"),
+                    plot.subtitle = element_text(size = 7, colour = "white"),
+                    panel.grid.minor = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.background = element_rect(fill = "transparent"),
+                    plot.background = element_rect(fill = "#30115e", colour = "#30115e"),
+                    legend.background = element_blank(),
+                    legend.text = element_text(colour = "white"),
+                    legend.title = element_text(colour = "white"))
 
   ic_subset <- reactive({
     if (c("Statewide") %in% input$acep_energy_region)
       capacity_filtered %>%
       group_by(year, prime_mover) %>%
       summarize(capacity = sum(capacity))  %>%
-      arrange(desc(capacity), .by_group = TRUE) %>%
-      mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover)))
+      arrange(capacity, .by_group = TRUE) %>%
+      mutate(prime_mover = factor(prime_mover, levels = unique(prime_mover)))
     else
       capacity_filtered %>%
       filter(acep_region == input$acep_energy_region) %>%
       group_by(year, prime_mover) %>%
       summarize(capacity = sum(capacity))  %>%
-      arrange(desc(capacity), .by_group = TRUE) %>%
-      mutate(prime_mover = factor(prime_mover, levels = rev(prime_mover)))
+      arrange(capacity, .by_group = TRUE) %>%
+      mutate(prime_mover = factor(prime_mover, levels = unique(prime_mover)))
   })
 
   output$ic_plot <- renderPlotly({
@@ -84,55 +93,53 @@ server <- function(input, output) {
       labs(title = paste(input$acep_energy_region, "Trends in Installed Capacity"),
            subtitle = "hover over points for details") +
       ylab("Capacity (mW)") +
-      theme(axis.title.y = element_text(angle=0, size = 7, colour = "white"),
-            axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
-            axis.text.x = element_text(colour = "white"),
-            axis.text.y = element_text(colour = "white"),
-            plot.title = element_text(face = "bold", colour = "white"),
-            plot.subtitle = element_text(size = 7, colour = "white"),
-            panel.grid.minor = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.background = element_rect(fill = "transparent"),
-            plot.background = element_rect(fill = "#30115e", colour = "#30115e"),
-            legend.background = element_blank(),
-            legend.text = element_text(colour = "white"),
-            legend.title = element_text(colour = "white"))
+        plot_theme
       )
   })
-  # output$ic_plot <- renderGirafe({
-  #   object_ic <- ggplot(capacity_filtered_tooltip, aes(x = year, y = capacity, fill = prime_mover)) +
-  #     geom_line_interactive(aes(tooltip=table)) +
-  #     geom_area(position = "fill") +
-  #     #scale_x_continuous(breaks = seq(min(capacity_filtered_tooltip$year), max(capacity_filtered_tooltip$year), by = 1)) +
-  #     #scale_y_continuous(limits = c(0,3500), breaks = seq(0,3500, by = 500)) +
-  #     labs(title = "All Regions Trend",
-  #          subtitle = "hover over points for details") +
-  #     ylab("Capacity (mW)") +
-  #     theme(axis.title.y = element_text(angle=0, size = 7, colour = "white"),
-  #           axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
-  #           axis.text.x = element_text(colour = "white"),
-  #           axis.text.y = element_text(colour = "white"),
-  #           plot.title = element_text(face = "bold", colour = "white"),
-  #           plot.subtitle = element_text(size = 7, colour = "white"),
-  #           panel.grid.minor = element_blank(),
-  #           panel.grid.major = element_blank(),
-  #           panel.background = element_blank(),
-  #           plot.background = element_rect(fill = "#30115e", colour = "#30115e"),
-  #           legend.background = element_blank(),
-  #           legend.text = element_text(colour = "white"),
-  #           legend.title = element_text(colour = "white")
-  #     )
-  #
-  #   girafe(ggobj = object_ic,
-  #          options = list(
-  #            opts_tooltip(delay_mouseover = 50,
-  #                         delay_mouseout = 50)
-  #          ),
-  #          width_svg = 8, height_svg = 4)
-  # })
+
+  ng_subset <- reactive({
+    if (c("Statewide") %in% input$acep_energy_region)
+    generation %>%
+      group_by(year, acep_region) %>%
+      summarize(generation = sum(generation, na.rm = T))
+    else
+    generation %>%
+      filter(acep_region == input$acep_energy_region) %>%
+      group_by(year, fuel_type) %>%
+      summarise(generation = sum(generation, na.rm = T)) %>%
+      arrange(generation, .by_group = TRUE) %>%
+      mutate(fuel_type = factor(fuel_type, levels = unique(fuel_type)))
+  })
+
+  output$ng_plot <- renderPlotly({
+        ggplotly(
+          ggplot(ng_subset(), aes(x = year, y = generation/1000, fill = switch(input$acep_energy_region,
+                                                                               "Statewide" = ng_subset()$acep_region,
+                                                                               "Coastal" = ng_subset()$fuel_type,
+                                                                               "Railbelt" = ng_subset()$fuel_type,
+                                                                               "Rural Remote" = ng_subset()$fuel_type))) +
+            geom_col(position = "stack") +
+            scale_x_continuous(breaks = seq(min(ng_subset()$year), max(ng_subset()$year), by = 1)) +
+            scale_y_continuous(limits = c(0,7000), breaks = seq(0,7000, by = 1000)) +
+            labs(title = paste(input$acep_energy_region, "Trends in Generation"),
+                 subtitle = "hover over points for details") +
+            ylab("Generation (GWh)") +
+            plot_theme
+        )
+    })
+    # ggplotly(
+    #   ggplot(ng_subset(), aes(x = year, y = generation/1000, fill = acep_region %in% c("Coastal", "Railbelt"))) +
+    #     geom_col(position = "stack") +
+    #     scale_x_continuous(breaks = seq(min(ng_subset()$year), max(ng_subset()$year), by = 1)) +
+    #     scale_y_continuous(limits = c(0,7000), breaks = seq(0,7000, by = 1000)) +
+    #     labs(title = paste(input$acep_energy_region, "Trends in Generation"),
+    #          subtitle = "hover over points for details") +
+    #     ylab("Generation (GWh)") +
+    #     plot_theme
 
   pe_subset <- reactive({
-    if (c("Statewide") %in% input$acep_energy_region) weighted_prices_filtered %>%
+    if (c("Statewide") %in% input$acep_energy_region)
+      weighted_prices_filtered %>%
       group_by(year, sector) %>%
       summarize(weighted_price = mean(weighted_price))
     else
@@ -151,20 +158,7 @@ server <- function(input, output) {
       labs(title = paste(input$acep_energy_region, "Trends in Price of Electricity"),
            subtitle = "hover over points for details") +
       ylab("Cents per\nKilowatt-hour") +
-      theme(axis.title.y = element_text(angle=0, size = 8, colour = "white"),
-            axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
-            axis.text.x = element_text(colour = "white"),
-            axis.text.y = element_text(colour = "white"),
-            plot.title = element_text(face = "bold", colour = "white"),
-            plot.subtitle = element_text(size = 8, colour = "white"),
-            panel.grid.minor = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.background = element_rect(fill = "transparent"),
-            plot.background = element_rect(fill = "#30115e", colour = "#30115e"),
-            legend.background = element_blank(),
-            legend.text = element_text(colour = "white"),
-            legend.title = element_text(colour = "white")
-            )
+        plot_theme
 )
     # girafe(ggobj = object_pe,
     #        options = list(
