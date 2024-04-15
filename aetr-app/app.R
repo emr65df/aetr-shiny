@@ -104,7 +104,11 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
       summarize(generation = sum(generation, na.rm = T))
     else
     generation %>%
-      filter(acep_region == input$acep_energy_region) %>%
+      filter(acep_region == input$acep_energy_region &
+             fuel_type %in% switch(input$acep_energy_region,
+                                 "Coastal" = c("Oil", "Hydro", "Wind"),
+                                 "Railbelt" = c("Coal", "Oil", "Gas", "Hydro", "Wind", "Solar"),
+                                 "Rural Remote" = c("Oil", "Gas", "Hydro", "Wind", "Solar", "Other"))) %>%
       group_by(year, fuel_type) %>%
       summarise(generation = sum(generation, na.rm = T)) %>%
       arrange(generation, .by_group = TRUE) %>%
