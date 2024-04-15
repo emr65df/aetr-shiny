@@ -7,16 +7,20 @@ library(plotly)
 library(kableExtra)
 source("helpers.R")
 
-#generation
-source_generation <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/generation/net_generation_long.csv"
-generation <- read_csv(url(source_generation))
-
 #installed capacity data
 source_capacity <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/capacity/capacity_long.csv"
 capacity <- read_csv(url(source_capacity))
 #filter data prime_mover != NA
 capacity_filtered <- capacity %>%
   filter(!is.na(prime_mover))
+
+#generation
+source_generation <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/generation/net_generation_long.csv"
+generation <- read_csv(url(source_generation))
+
+#consumption
+source_consumption <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/consumption/consumption_long.csv"
+consumption <- read_csv(url(source_consumption))
 
 #prices data
 source_weighted_prices <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/prices/weighted_prices.csv"
@@ -135,20 +139,7 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
         ggplotly(p, tooltip = "text") %>%
           layout(legend = list(title = ""),
                  hovermode = "x unified")
-       # p$x$layout$legend$title <- ""
-
-        #p
-
     })
-    # ggplotly(
-    #   ggplot(ng_subset(), aes(x = year, y = generation/1000, fill = acep_region %in% c("Coastal", "Railbelt"))) +
-    #     geom_col(position = "stack") +
-    #     scale_x_continuous(breaks = seq(min(ng_subset()$year), max(ng_subset()$year), by = 1)) +
-    #     scale_y_continuous(limits = c(0,7000), breaks = seq(0,7000, by = 1000)) +
-    #     labs(title = paste(input$acep_energy_region, "Trends in Generation"),
-    #          subtitle = "hover over points for details") +
-    #     ylab("Generation (GWh)") +
-    #     plot_theme
 
   pe_subset <- reactive({
     if (c("Statewide") %in% input$acep_energy_region)
