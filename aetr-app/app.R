@@ -85,23 +85,25 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
   })
 
   output$ic_plot <- renderPlotly({
-    object_ic <- ggplotly(
-      ggplot(ic_subset(), aes(x = year, y = capacity, fill = prime_mover)) +
-      geom_area(stat = "identity", position = "stack") +
+    object_ic <-
+      p <- ggplot(ic_subset(), aes(x = year, y = capacity, fill = prime_mover)) +
+        geom_area(stat = "identity", position = "stack") +
       scale_x_continuous(breaks = seq(min(ic_subset()$year), max(ic_subset()$year), by = 1)) +
       scale_y_continuous(limits = c(0,3500), breaks = seq(0,3500, by = 500)) +
       labs(title = paste(input$acep_energy_region, "Trends in Installed Capacity"),
            subtitle = "hover over points for details") +
       ylab("Capacity (mW)") +
         plot_theme
-      )
+
+    ggplotly(p) %>%
+      layout(hovermode = "x unified")
   })
 
   ng_subset <- reactive({
     if (c("Statewide") %in% input$acep_energy_region)
     generation %>%
       group_by(year, acep_region) %>%
-      summarize(generation = sum(generation, na.rm = T))
+      summarize(generation = sum(generation, na.rm = T)/1000)
     else
     generation %>%
       filter(acep_region == input$acep_energy_region &
@@ -110,18 +112,18 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
                                  "Railbelt" = c("Coal", "Oil", "Gas", "Hydro", "Wind", "Solar"),
                                  "Rural Remote" = c("Oil", "Gas", "Hydro", "Wind", "Solar", "Other"))) %>%
       group_by(year, fuel_type) %>%
-      summarise(generation = sum(generation, na.rm = T)) %>%
+      summarise(generation = sum(generation, na.rm = T)/1000) %>%
       arrange(generation, .by_group = TRUE) %>%
       mutate(fuel_type = factor(fuel_type, levels = unique(fuel_type)))
   })
 
   output$ng_plot <- renderPlotly({
-        ggplotly(
-          ggplot(ng_subset(), aes(x = year, y = generation/1000, fill = switch(input$acep_energy_region,
+        p <- ggplot(ng_subset(), aes(x = year, y = generation, fill = switch(input$acep_energy_region,
                                                                                "Statewide" = ng_subset()$acep_region,
                                                                                "Coastal" = ng_subset()$fuel_type,
                                                                                "Railbelt" = ng_subset()$fuel_type,
-                                                                               "Rural Remote" = ng_subset()$fuel_type))) +
+                                                                               "Rural Remote" = ng_subset()$fuel_type),
+                                     text = paste("generation:", generation))) +
             geom_col(position = "stack") +
             scale_x_continuous(breaks = seq(min(ng_subset()$year), max(ng_subset()$year), by = 1)) +
             scale_y_continuous(limits = c(0,7000), breaks = seq(0,7000, by = 1000)) +
@@ -129,7 +131,14 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
                  subtitle = "hover over points for details") +
             ylab("Generation (GWh)") +
             plot_theme
-        )
+
+        ggplotly(p, tooltip = "text") %>%
+          layout(legend = list(title = ""),
+                 hovermode = "x unified")
+       # p$x$layout$legend$title <- ""
+
+        #p
+
     })
     # ggplotly(
     #   ggplot(ng_subset(), aes(x = year, y = generation/1000, fill = acep_region %in% c("Coastal", "Railbelt"))) +
