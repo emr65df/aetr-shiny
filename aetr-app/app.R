@@ -117,7 +117,7 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
         plot_theme
 
     ggplotly(p) %>%
-      layout(hovermode = "x unified")
+      layout(legend = list(title = ""))
   })
 
   ng_subset <- reactive({
@@ -155,8 +155,9 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
             ylab("Generation (GWh)") +
             plot_theme
 
-        ggplotly(p) %>%
-          layout(legend = list(title = ""))
+        ggplotly(p, tooltip = "text") %>%
+          layout(legend = list(title = ""),
+                 hovermode = "x unified")
     })
 
 
