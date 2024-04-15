@@ -5,6 +5,6 @@ account: emr65df
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11722098
-bundleId: 8478717
+bundleId: 8494519
 url: https://emr65df.shinyapps.io/aetr-app/
 version: 1
