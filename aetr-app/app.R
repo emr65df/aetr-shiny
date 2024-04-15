@@ -49,17 +49,18 @@ ui <- page_navbar(
       div(style = "position: absolute; bottom: 10px; right: 8%;",
         tags$img(height = 65, width = 215, src = "acep-logo.png"))
     ),
-    #tags$a("2024 Alaska Electricity", tags$br(), "Trends Report", href = "https://acep-uaf.github.io/aetr-web-book-2024/")
-  #   downloadButton("download_data", "All Regions")
-    nav_panel("About", div(p("The purpose of this application is to showcase the 2024 Alaska
+     #   downloadButton("download_data", "All Regions")
+    nav_panel("About", div("The purpose of this application is to showcase the 2024 Alaska
                               Electricity Trends Report graphs in a different format. Shiny Applications
                               are incredibly flexible, customizable, and allow for much more interactivity than
                               what is demonstrated here. Click some tabs, stay awhile, and hover around to explore the details of each plot.\n
                               The link below will take you to the web book."),
-                           tags$a("2024 Alaska Electricity", tags$br(), "Trends Report", href = "https://acep-uaf.github.io/aetr-web-book-2024/"),
-                           ),
+              tags$a("2024 Alaska Electricity Trends Report", href = "https://acep-uaf.github.io/aetr-web-book-2024/"),
+                           div("\nEach tab has an option to download the data set used to create the figures.
+                             Please visit", tags$a("the Github Repository", href = "https://github.com/emr65df/aetr-shiny"),
+                           "for more information. It is still under heavy development."),
               div(style = "position: absolute; bottom: 10px; right: 8%;",
-                  p("Created by Emily Richmond"))),
+                  p("Created by Emily Richmond - Updated", Sys.Date()))),
     # Panel with plot ----
     nav_panel("Installed Capacity", plotlyOutput(outputId = "ic_plot")),
 
@@ -73,11 +74,6 @@ ui <- page_navbar(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-  # output$about <- renderText({p("The purpose of this application to showcase the 2024 Alaska
-  #                   Electricity Trends Report in a different format. Shiny Applications
-  #                   are incredibly flexible and customizable.")
-  # })
 
 plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "white"),
                     axis.title.x = element_text(size = 7, colour = "white", hjust = 1),
@@ -159,9 +155,8 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
             ylab("Generation (GWh)") +
             plot_theme
 
-        ggplotly(p, tooltip = "text") %>%
-          layout(legend = list(title = ""),
-                 hovermode = "x unified")
+        ggplotly(p) %>%
+          layout(legend = list(title = ""))
     })
 
 
@@ -244,22 +239,7 @@ plot_theme <- theme(axis.title.y = element_text(angle=0, size = 7, colour = "whi
       ylab("Cents per\nKilowatt-hour") +
         plot_theme
 )
-    # girafe(ggobj = object_pe,
-    #        options = list(
-    #          opts_tooltip(opacity = 0.7,
-    #                       use_stroke = TRUE,
-    #                       offx = 10, offy = -100,
-    #                       delay_mouseover = 50,
-    #                       delay_mouseout = 50)
-    #        ),
-    #        width_svg = 8, height_svg = 4)
 })
-
-
-
-  # output$hover_table <- renderDataTable({
-  #   nearPoints(pe_subset(), input$plot_hover)
-  # }, rownames = FALSE)
   output$download_data <- downloadHandler(
     filename = function() {
       paste0("weighted_prices.", input$filetype)
