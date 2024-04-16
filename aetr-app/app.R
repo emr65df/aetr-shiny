@@ -55,7 +55,8 @@ ui <- page_navbar(
       div("The purpose of this application is to showcase the 2024 Alaska
        Electricity Trends Report graphs in a different format. Shiny Applications
        are incredibly flexible, customizable, and allow for much more interactivity than
-       what is demonstrated here. Click and hover around to explore the details of each plot."),
+       what is demonstrated here. Click and hover around to explore the details of each plot.
+          This incredibly loud color scheme is known as 'cyberpunk'. There are many to choose from."),
       tags$ul(
         tags$li("Kaczmarski, J., MacDougall, I., Dobbins, E., Broderson, D. 2024. 2024 Alaska Electricity Trends Report.",
                 tags$br(),
