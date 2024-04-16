@@ -50,17 +50,22 @@ ui <- page_navbar(
         tags$img(height = 65, width = 215, src = "acep-logo.png"))
     ),
      #   downloadButton("download_data", "All Regions")
-    nav_panel("About", div("The purpose of this application is to showcase the 2024 Alaska
-                              Electricity Trends Report graphs in a different format. Shiny Applications
-                              are incredibly flexible, customizable, and allow for much more interactivity than
-                              what is demonstrated here. Click some tabs, stay awhile, and hover around to explore the details of each plot.\n
-                              The link below will take you to the web book."),
-              tags$a("2024 Alaska Electricity Trends Report", href = "https://acep-uaf.github.io/aetr-web-book-2024/"),
-                           div("\nEach tab has an option to download the data set used to create the figures.
-                             Please visit", tags$a("the Github Repository", href = "https://github.com/emr65df/aetr-shiny"),
-                           "for more information. It is still under heavy development."),
-              div(style = "position: absolute; bottom: 10px; right: 8%;",
-                  p("Created by Emily Richmond - Updated", Sys.Date()))),
+    nav_panel("About",
+      div("The purpose of this application is to showcase the 2024 Alaska
+       Electricity Trends Report graphs in a different format. Shiny Applications
+       are incredibly flexible, customizable, and allow for much more interactivity than
+       what is demonstrated here. Each tab has an option to download the data set used to create the figures. Click and hover around to explore the details of each plot."),
+      tags$ul(
+        tags$li("Kaczmarski, J., MacDougall, I., Dobbins, E., Broderson, D. 2024. 2024 Alaska Electricity Trends Report.",
+                tags$br(),
+                tags$a("https://acep-uaf.github.io/aetr-web-book-2024/", href="https://acep-uaf.github.io/aetr-web-book-2024/")
+        )
+      ),
+      div("Please visit",
+          tags$a("the Github Repository", href = "https://github.com/emr65df/aetr-shiny"),
+       "for more information about this application. It is still under heavy development."),
+      div(style = "position: absolute; bottom: 10px; right: 5%;",
+          p("Application Created by Emily Richmond, ACEP - Updated", Sys.Date()))),
     # Panel with plot ----
     nav_panel("Installed Capacity", plotlyOutput(outputId = "ic_plot")),
 
