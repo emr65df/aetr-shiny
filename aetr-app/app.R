@@ -7,10 +7,11 @@ library(plotly)
 library(kableExtra)
 source("helpers.R")
 
-
+link_data_portal <- tags$a(shiny::icon("sitemap"), "Data Portal", href = "https://acep-uaf.github.io/aetr-web-book-2024/data.html", target = "_blank")
 #installed capacity data
 source_capacity <- "https://raw.githubusercontent.com/acep-uaf/aetr-web-book-2024/main/data/working/capacity/capacity_long.csv"
 capacity <- read_csv(url(source_capacity))
+link_ic <-
 #filter data prime_mover != NA
 capacity_filtered <- capacity %>%
   filter(!is.na(prime_mover)) %>%
@@ -54,7 +55,7 @@ ui <- page_navbar(
       div("The purpose of this application is to showcase the 2024 Alaska
        Electricity Trends Report graphs in a different format. Shiny Applications
        are incredibly flexible, customizable, and allow for much more interactivity than
-       what is demonstrated here. Each tab has an option to download the data set used to create the figures. Click and hover around to explore the details of each plot."),
+       what is demonstrated here. Click and hover around to explore the details of each plot."),
       tags$ul(
         tags$li("Kaczmarski, J., MacDougall, I., Dobbins, E., Broderson, D. 2024. 2024 Alaska Electricity Trends Report.",
                 tags$br(),
@@ -74,7 +75,13 @@ ui <- page_navbar(
 
     # Panel with table ----
     nav_panel("Consumption and Sales", plotlyOutput(outputId = "cs_plot")),
-    nav_panel("Price of Electricity", plotlyOutput(outputId = "pe_plot"))
+    nav_panel("Price of Electricity", plotlyOutput(outputId = "pe_plot")),
+  nav_spacer(),
+  nav_menu(
+    title = "Downloads",
+    align = "right",
+    nav_item(link_data_portal)
+  )
 )
 
 # Define server logic required to draw a histogram
