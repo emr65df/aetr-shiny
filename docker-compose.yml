@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  aetr-app:
+    build: .
+    container_name: aetr-app
+    ports:
+      - ":3838"
+    networks:
+      - aetr-network
+    restart: always
+
+networks:
+  aetr-network:
+    driver: bridge
